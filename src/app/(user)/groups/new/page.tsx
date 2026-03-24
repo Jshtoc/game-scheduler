@@ -4,7 +4,7 @@ import { createGroup } from "@/lib/actions/group";
 
 export default function NewGroupPage() {
   return (
-    <div className="flex flex-1 flex-col gap-6 p-8">
+    <div className="flex flex-1 flex-col gap-6 p-4 md:p-8">
       <div className="flex items-center gap-3">
         <TwEmoji emoji="👥" size={28} />
         <h1 className="text-xl font-bold">그룹 만들기</h1>

@@ -65,7 +65,7 @@ export default async function DashboardPage() {
   const moreCount = upcomingSchedules.length - 1;
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-8">
+    <div className="flex flex-1 flex-col gap-6 p-4 md:p-8">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">
           안녕하세요, {profile?.username ?? "사용자"}님

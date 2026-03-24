@@ -1,6 +1,7 @@
 import Link from "next/link";
 import TwEmoji from "@/components/ui/TwEmoji";
 import { SidebarNav } from "@/components/ui/SidebarNav";
+import { MobileNav } from "@/components/ui/MobileNav";
 import { RoleBadge } from "@/components/ui/RoleBadge";
 import { createClient } from "@/lib/supabase/server";
 import { requireAuth } from "@/lib/auth";
@@ -22,8 +23,9 @@ export default async function UserLayout({
     .single();
 
   return (
-    <div className="flex flex-1">
-      <aside className="flex w-56 flex-col bg-dark-card dark:bg-dark">
+    <div className="flex flex-1 flex-col md:flex-row">
+      {/* 데스크톱 사이드바 */}
+      <aside className="hidden w-56 flex-col bg-dark-card dark:bg-dark md:flex">
         <Link
           href="/dashboard"
           className="flex items-center gap-2 border-b border-white/10 px-5 py-4"
@@ -54,7 +56,33 @@ export default async function UserLayout({
           <LogoutButton />
         </div>
       </aside>
-      <main className="flex flex-1 flex-col overflow-auto">{children}</main>
+
+      {/* 모바일 헤더 */}
+      <header className="flex items-center justify-between border-b border-card-border bg-dark-card px-4 py-3 md:hidden">
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <TwEmoji emoji="🎮" size={20} />
+          <span className="text-sm font-bold text-white">Game Scheduler</span>
+        </Link>
+        <div className="flex items-center gap-2">
+          {profile?.avatar_url ? (
+            <img
+              src={profile.avatar_url}
+              alt={profile.username ?? "프로필"}
+              className="h-6 w-6 rounded-full"
+            />
+          ) : (
+            <TwEmoji emoji="👤" size={18} />
+          )}
+          <RoleBadge role={(profile?.role as UserRole) ?? "member"} />
+        </div>
+      </header>
+
+      <main className="flex flex-1 flex-col overflow-auto pb-16 md:pb-0">
+        {children}
+      </main>
+
+      {/* 모바일 하단 탭 */}
+      <MobileNav />
     </div>
   );
 }

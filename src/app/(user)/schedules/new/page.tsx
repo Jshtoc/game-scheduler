@@ -15,7 +15,7 @@ export default async function NewSchedulePage() {
   if (!user) redirect("/login");
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-8">
+    <div className="flex flex-1 flex-col gap-6 p-4 md:p-8">
       <div className="flex items-center gap-3">
         <TwEmoji emoji="📅" size={28} />
         <h1 className="text-xl font-bold">새 스케줄</h1>

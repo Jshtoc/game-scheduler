@@ -10,7 +10,7 @@ export default async function AdminGroupsPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-8">
+    <div className="flex flex-1 flex-col gap-6 p-4 md:p-8">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <TwEmoji emoji="👥" size={28} />
@@ -19,7 +19,7 @@ export default async function AdminGroupsPage() {
         <p className="text-sm text-muted">총 {groups?.length ?? 0}개</p>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-card-border bg-card">
+      <div className="overflow-x-auto rounded-2xl border border-card-border bg-card">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-card-border bg-background">
             <tr>

@@ -59,7 +59,7 @@ export default async function UsersPage({
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-8">
+    <div className="flex flex-1 flex-col gap-6 p-4 md:p-8">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <TwEmoji emoji="👤" size={28} />
@@ -70,7 +70,7 @@ export default async function UsersPage({
 
       <UserFilter currentSort={sort ?? "date"} currentQuery={q ?? ""} currentDir={dir ?? "asc"} />
 
-      <div className="overflow-hidden rounded-2xl border border-card-border bg-card">
+      <div className="overflow-x-auto rounded-2xl border border-card-border bg-card">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-card-border bg-background">
             <tr>

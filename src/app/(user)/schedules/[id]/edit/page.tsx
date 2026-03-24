@@ -46,7 +46,7 @@ export default async function EditSchedulePage({
   if (!isOwner && myRole?.role !== "admin") notFound();
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-8">
+    <div className="flex flex-1 flex-col gap-6 p-4 md:p-8">
       <div className="flex items-center gap-3">
         <TwEmoji emoji="✏️" size={28} />
         <h1 className="text-xl font-bold">스케줄 수정</h1>

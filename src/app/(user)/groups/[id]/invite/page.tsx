@@ -18,7 +18,7 @@ export default async function InviteMemberPage({
   const { error } = await searchParams;
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-8">
+    <div className="flex flex-1 flex-col gap-6 p-4 md:p-8">
       <div className="flex items-center gap-3">
         <TwEmoji emoji="➕" size={28} />
         <h1 className="text-xl font-bold">멤버 초대</h1>

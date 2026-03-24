@@ -40,8 +40,7 @@ yarn-error.log*
 .vercel
 
 # claude
-.claude/worktrees/
-.claude/skills/game-scheduler-backend-workspace/
+.claude/
 
 # typescript
 *.tsbuildinfo

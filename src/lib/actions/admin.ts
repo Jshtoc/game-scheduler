@@ -112,7 +112,7 @@ export async function updateUserPenalty(formData: FormData) {
 
   if (!target) return;
 
-  const current = (target as Record<string, number>)[field] ?? 0;
+  const current = (target as unknown as Record<string, number>)[field] ?? 0;
   const newValue = action === "increment" ? current + 1 : Math.max(0, current - 1);
 
   await supabase

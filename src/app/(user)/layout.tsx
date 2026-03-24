@@ -1,14 +1,10 @@
 import Link from "next/link";
 import TwEmoji from "@/components/ui/TwEmoji";
+import { SidebarNav } from "@/components/ui/SidebarNav";
+import { RoleBadge } from "@/components/ui/RoleBadge";
 import { createClient } from "@/lib/supabase/server";
 import { LogoutButton } from "./logout-button";
-
-const navItems = [
-  { href: "/dashboard", label: "대시보드", emoji: "🏠" },
-  { href: "/schedules", label: "스케줄", emoji: "📅" },
-  { href: "/groups", label: "그룹", emoji: "👥" },
-  { href: "/friends", label: "친구", emoji: "🤝" },
-];
+import type { UserRole } from "@/lib/auth";
 
 export default async function UserLayout({
   children,
@@ -22,49 +18,39 @@ export default async function UserLayout({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username, avatar_url")
+    .select("username, avatar_url, role")
     .eq("id", user?.id ?? "")
     .single();
 
   return (
     <div className="flex flex-1">
-      <aside className="flex w-56 flex-col border-r border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950">
+      <aside className="flex w-56 flex-col bg-dark-card dark:bg-dark">
         <Link
           href="/dashboard"
-          className="flex items-center gap-2 border-b border-zinc-200 px-5 py-4 dark:border-zinc-800"
+          className="flex items-center gap-2 border-b border-white/10 px-5 py-4"
         >
           <TwEmoji emoji="🎮" size={22} />
-          <span className="text-sm font-bold">Game Scheduler</span>
+          <span className="text-sm font-bold text-white">Game Scheduler</span>
         </Link>
 
-        <nav className="flex flex-col gap-1 p-3">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-200/60 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
-            >
-              <TwEmoji emoji={item.emoji} size={18} />
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        <SidebarNav />
 
-        <div className="mt-auto border-t border-zinc-200 p-3 dark:border-zinc-800">
+        <div className="mt-auto border-t border-white/10 p-3">
           <Link
             href="/profile"
-            className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-200/60 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+            className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm text-white/60 transition-colors hover:bg-white/10 hover:text-accent"
           >
             {profile?.avatar_url ? (
               <img
                 src={profile.avatar_url}
                 alt={profile.username ?? "프로필"}
-                className="h-5 w-5 rounded-full"
+                className="h-6 w-6 shrink-0 rounded-full"
               />
             ) : (
               <TwEmoji emoji="👤" size={18} />
             )}
             <span className="truncate">{profile?.username ?? "사용자"}</span>
+            <RoleBadge role={(profile?.role as UserRole) ?? "member"} />
           </Link>
           <LogoutButton />
         </div>

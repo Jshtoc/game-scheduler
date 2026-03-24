@@ -1,6 +1,7 @@
 import Link from "next/link";
 import TwEmoji from "@/components/ui/TwEmoji";
 import { SteamLinkInput } from "@/components/ui/SteamLinkInput";
+import { ScheduleFormFields } from "@/components/ui/ScheduleForm";
 import { createClient } from "@/lib/supabase/server";
 import { updateSchedule } from "@/lib/actions/schedule";
 import { notFound, redirect } from "next/navigation";
@@ -29,18 +30,20 @@ export default async function EditSchedulePage({
     .from("schedules")
     .select("*")
     .eq("id", id)
-    .eq("owner_id", user.id)
     .single();
 
   if (!schedule) notFound();
 
-  const { data: memberships } = await supabase
-    .from("group_members")
-    .select("groups(id, name)")
-    .eq("user_id", user.id);
+  // 주최자 또는 관리자만 수정 가능
+  const isOwner = schedule.owner_id === user.id;
+  const { data: myRole } = await supabase
+    .from("schedule_participants")
+    .select("role")
+    .eq("schedule_id", id)
+    .eq("user_id", user.id)
+    .single();
 
-  const groups =
-    memberships?.map((m) => m.groups as { id: string; name: string }) ?? [];
+  if (!isOwner && myRole?.role !== "admin") notFound();
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-8">
@@ -57,76 +60,17 @@ export default async function EditSchedulePage({
           defaultGameImage={schedule.game_image ?? undefined}
         />
 
-        <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium">제목 *</span>
-          <input
-            type="text"
-            name="title"
-            required
-            defaultValue={schedule.title}
-            className="rounded-lg border border-zinc-200 bg-transparent px-3 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-700 dark:focus:border-zinc-500"
-          />
-        </label>
-
-        <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium">시작 시간 *</span>
-          <input
-            type="datetime-local"
-            name="start_time"
-            required
-            defaultValue={toLocalDatetime(schedule.start_time)}
-            className="rounded-lg border border-zinc-200 bg-transparent px-3 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-700 dark:focus:border-zinc-500"
-          />
-        </label>
-
-        <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium">종료 시간</span>
-          <input
-            type="datetime-local"
-            name="end_time"
-            defaultValue={schedule.end_time ? toLocalDatetime(schedule.end_time) : ""}
-            className="rounded-lg border border-zinc-200 bg-transparent px-3 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-700 dark:focus:border-zinc-500"
-          />
-        </label>
-
-        <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium">최대 인원</span>
-          <input
-            type="number"
-            name="max_players"
-            min="2"
-            defaultValue={schedule.max_players ?? ""}
-            className="rounded-lg border border-zinc-200 bg-transparent px-3 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-700 dark:focus:border-zinc-500"
-          />
-        </label>
-
-        <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium">설명</span>
-          <textarea
-            name="description"
-            rows={3}
-            defaultValue={schedule.description ?? ""}
-            className="rounded-lg border border-zinc-200 bg-transparent px-3 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-700 dark:focus:border-zinc-500"
-          />
-        </label>
-
-        {groups.length > 0 && (
-          <label className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium">그룹 (선택)</span>
-            <select
-              name="group_id"
-              defaultValue={schedule.group_id ?? ""}
-              className="rounded-lg border border-zinc-200 bg-transparent px-3 py-2 text-sm outline-none focus:border-zinc-400 dark:border-zinc-700 dark:focus:border-zinc-500"
-            >
-              <option value="">그룹 없음 (개인 스케줄)</option>
-              {groups.map((group) => (
-                <option key={group.id} value={group.id}>
-                  {group.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
+        <ScheduleFormFields
+          defaultValues={{
+            title: schedule.title,
+            start_time: toLocalDatetime(schedule.start_time),
+            max_players: schedule.max_players,
+            description: schedule.description,
+            schedule_type: schedule.schedule_type ?? "once",
+            recurring_days: schedule.recurring_days,
+            recurring_time: schedule.recurring_time,
+          }}
+        />
 
         <div className="flex gap-3 pt-2">
           <button

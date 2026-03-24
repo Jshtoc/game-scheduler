@@ -3,6 +3,10 @@ export interface Profile {
   discord_id: string;
   username: string;
   avatar_url: string | null;
+  role: "master" | "admin" | "member";
+  noshow_count: number;
+  late_count: number;
+  warning_count: number;
   created_at: string;
   updated_at: string;
 }
@@ -14,10 +18,15 @@ export interface Schedule {
   description: string | null;
   game_name: string;
   game_image: string | null;
+  game_store_url: string | null;
   start_time: string;
   end_time: string | null;
   max_players: number | null;
   group_id: string | null;
+  schedule_type: "once" | "recurring";
+  recurring_days: number[] | null;
+  recurring_time: string | null;
+  is_ended: boolean;
   created_at: string;
   updated_at: string;
 }

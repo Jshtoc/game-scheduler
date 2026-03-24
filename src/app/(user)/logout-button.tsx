@@ -7,7 +7,7 @@ export function LogoutButton() {
     <form action="/api/auth/logout" method="POST">
       <button
         type="submit"
-        className="mt-1 flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-zinc-500 transition-colors hover:bg-zinc-200/60 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+        className="mt-1 flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-white/40 transition-colors hover:bg-white/10 hover:text-red-400"
       >
         <TwEmoji emoji="🚪" size={18} />
         로그아웃

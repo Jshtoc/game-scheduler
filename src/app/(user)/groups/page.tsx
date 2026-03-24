@@ -14,10 +14,10 @@ export default async function GroupsPage() {
     .eq("user_id", user?.id ?? "");
 
   const groups =
-    memberships?.map((m) => ({
-      ...(m.groups as { id: string; name: string; description: string | null; owner_id: string }),
-      role: m.role as string,
-    })) ?? [];
+    memberships?.map((m) => {
+      const g = m.groups as unknown as { id: string; name: string; description: string | null; owner_id: string };
+      return { ...g, role: m.role as string };
+    }) ?? [];
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-8">

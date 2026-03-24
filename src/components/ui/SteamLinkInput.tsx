@@ -14,9 +14,11 @@ interface SteamGameData {
 export function SteamLinkInput({
   defaultGameName,
   defaultGameImage,
+  defaultStoreUrl,
 }: {
   defaultGameName?: string;
   defaultGameImage?: string;
+  defaultStoreUrl?: string;
 }) {
   const [steamUrl, setSteamUrl] = useState("");
   const [gameData, setGameData] = useState<SteamGameData | null>(
@@ -26,7 +28,7 @@ export function SteamLinkInput({
           image: defaultGameImage ?? "",
           description: "",
           appId: 0,
-          storeUrl: "",
+          storeUrl: defaultStoreUrl ?? "",
         }
       : null
   );
@@ -69,6 +71,7 @@ export function SteamLinkInput({
       {/* hidden inputs for form submission */}
       <input type="hidden" name="game_name" value={gameData?.name ?? ""} />
       <input type="hidden" name="game_image" value={gameData?.image ?? ""} />
+      <input type="hidden" name="game_store_url" value={gameData?.storeUrl ?? ""} />
 
       {gameData ? (
         <div className="overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">

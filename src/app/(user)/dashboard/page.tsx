@@ -1,6 +1,7 @@
 import TwEmoji from "@/components/ui/TwEmoji";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { Calendar } from "@/components/ui/Calendar";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -14,111 +15,133 @@ export default async function DashboardPage() {
     .eq("id", user?.id ?? "")
     .single();
 
-  const { count: scheduleCount } = await supabase
-    .from("schedules")
-    .select("*", { count: "exact", head: true })
-    .eq("owner_id", user?.id ?? "");
+  // 내가 참가 중인 스케줄 ID
+  const { data: participations } = await supabase
+    .from("schedule_participants")
+    .select("schedule_id")
+    .eq("user_id", user?.id ?? "")
+    .eq("status", "accepted");
 
-  const { count: groupCount } = await supabase
-    .from("group_members")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", user?.id ?? "");
+  const scheduleIds = participations?.map((p) => p.schedule_id) ?? [];
+  const scheduleCount = scheduleIds.length;
 
-  const { count: friendCount } = await supabase
-    .from("friendships")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "accepted")
-    .or(`requester_id.eq.${user?.id},addressee_id.eq.${user?.id}`);
+  // 내 스케줄 전체 (달력용)
+  let allSchedules: {
+    id: string;
+    title: string;
+    game_name: string;
+    game_image: string | null;
+    start_time: string;
+    schedule_type: string;
+    recurring_days: number[] | null;
+  }[] = [];
 
-  const { data: upcomingSchedules } = await supabase
-    .from("schedules")
-    .select("id, title, game_name, start_time")
-    .or(`owner_id.eq.${user?.id},group_id.in.(select group_id from group_members where user_id = '${user?.id}')`)
-    .gte("start_time", new Date().toISOString())
-    .order("start_time", { ascending: true })
-    .limit(5);
+  // 다가오는 스케줄 (상단 표시용)
+  let upcomingSchedules: {
+    id: string;
+    title: string;
+    game_name: string;
+    start_time: string;
+  }[] = [];
 
-  const stats = [
-    { label: "내 스케줄", value: scheduleCount ?? 0, emoji: "📅" },
-    { label: "소속 그룹", value: groupCount ?? 0, emoji: "👥" },
-    { label: "친구", value: friendCount ?? 0, emoji: "🤝" },
-  ];
+  if (scheduleIds.length > 0) {
+    const { data } = await supabase
+      .from("schedules")
+      .select("id, title, game_name, game_image, start_time, schedule_type, recurring_days")
+      .in("id", scheduleIds);
+    allSchedules = data ?? [];
+
+    const { data: upcoming } = await supabase
+      .from("schedules")
+      .select("id, title, game_name, start_time")
+      .in("id", scheduleIds)
+      .gte("start_time", new Date().toISOString())
+      .order("start_time", { ascending: true })
+      .limit(5);
+    upcomingSchedules = upcoming ?? [];
+  }
+
+  const nextSchedule = upcomingSchedules[0];
+  const moreCount = upcomingSchedules.length - 1;
 
   return (
-    <div className="flex flex-1 flex-col gap-8 p-8">
+    <div className="flex flex-1 flex-col gap-6 p-8">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">
           안녕하세요, {profile?.username ?? "사용자"}님
         </h1>
-        <p className="mt-1 text-zinc-500">오늘의 게임 일정을 확인하세요</p>
+        <p className="mt-1 text-muted">오늘의 게임 일정을 확인하세요</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {stats.map((stat) => (
-          <div
-            key={stat.label}
-            className="flex items-center gap-4 rounded-xl border border-zinc-200 p-5 dark:border-zinc-800"
-          >
-            <TwEmoji emoji={stat.emoji} size={28} />
-            <div>
-              <p className="text-2xl font-bold">{stat.value}</p>
-              <p className="text-sm text-zinc-500">{stat.label}</p>
-            </div>
+      {/* 상단 카드 */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {/* 좌측: 내 스케줄 수 */}
+        <div className="flex items-center gap-4 rounded-2xl border border-card-border bg-card p-5">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-dark-card">
+            <TwEmoji emoji="📅" size={24} />
           </div>
-        ))}
-      </div>
-
-      <div>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">다가오는 스케줄</h2>
-          <Link
-            href="/schedules"
-            className="text-sm text-zinc-500 transition-colors hover:text-zinc-900 dark:hover:text-zinc-300"
-          >
-            전체 보기
-          </Link>
+          <div>
+            <p className="text-2xl font-bold">{scheduleCount}</p>
+            <p className="text-sm text-muted">참가 중인 스케줄</p>
+          </div>
         </div>
 
-        {upcomingSchedules && upcomingSchedules.length > 0 ? (
-          <div className="flex flex-col gap-3">
-            {upcomingSchedules.map((schedule) => (
-              <Link
-                key={schedule.id}
-                href={`/schedules/${schedule.id}`}
-                className="flex items-center justify-between rounded-xl border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
-              >
-                <div className="flex items-center gap-3">
-                  <TwEmoji emoji="🎮" size={20} />
-                  <div>
-                    <p className="font-medium">{schedule.title}</p>
-                    <p className="text-sm text-zinc-500">{schedule.game_name}</p>
-                  </div>
+        {/* 우측: 가장 빨리 다가오는 스케줄 */}
+        <div className="flex items-center justify-between rounded-2xl border border-card-border bg-card p-5">
+          {nextSchedule ? (
+            <>
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-dark-card">
+                  <TwEmoji emoji="🔜" size={24} />
                 </div>
-                <p className="text-sm text-zinc-500">
-                  {new Date(schedule.start_time).toLocaleDateString("ko-KR", {
-                    month: "short",
-                    day: "numeric",
-                    weekday: "short",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-zinc-300 py-12 dark:border-zinc-700">
-            <TwEmoji emoji="📭" size={32} />
-            <p className="text-sm text-zinc-500">다가오는 스케줄이 없습니다</p>
-            <Link
-              href="/schedules"
-              className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-            >
-              스케줄 만들기
-            </Link>
-          </div>
-        )}
+                <div>
+                  <Link
+                    href={`/schedules/${nextSchedule.id}`}
+                    className="font-semibold transition-colors hover:text-accent"
+                  >
+                    {nextSchedule.title}
+                  </Link>
+                  <p className="text-sm text-muted">
+                    {new Date(nextSchedule.start_time).toLocaleDateString("ko-KR", {
+                      month: "short",
+                      day: "numeric",
+                      weekday: "short",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+              </div>
+              {moreCount > 0 && (
+                <Link
+                  href="/schedules"
+                  className="rounded-full bg-accent px-3 py-1 text-xs font-bold text-dark transition-colors hover:bg-accent-hover"
+                >
+                  +{moreCount}
+                </Link>
+              )}
+            </>
+          ) : (
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-dark-card">
+                <TwEmoji emoji="📭" size={24} />
+              </div>
+              <div>
+                <p className="font-medium text-muted">다가오는 스케줄 없음</p>
+                <Link
+                  href="/schedules/board"
+                  className="text-sm text-muted transition-colors hover:text-accent"
+                >
+                  스케줄 보드 보기
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* 달력 */}
+      <Calendar schedules={allSchedules} />
     </div>
   );
 }

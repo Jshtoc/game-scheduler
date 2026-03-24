@@ -1,33 +1,17 @@
 import TwEmoji from "@/components/ui/TwEmoji";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 
-const mockSchedules = [
-  {
-    id: "1",
-    title: "발로란트 5인큐",
-    game: "Valorant",
-    owner: "Player1",
-    startTime: "2026-03-24 20:00",
-    players: "3/5",
-  },
-  {
-    id: "2",
-    title: "롤 내전",
-    game: "League of Legends",
-    owner: "GamerX",
-    startTime: "2026-03-25 19:00",
-    players: "8/10",
-  },
-  {
-    id: "3",
-    title: "오버워치 팀 연습",
-    game: "Overwatch 2",
-    owner: "ProScheduler",
-    startTime: "2026-03-26 21:00",
-    players: "5/6",
-  },
-];
+export default async function AdminSchedulesPage() {
+  const supabase = await createClient();
 
-export default function SchedulesPage() {
+  const { data: schedules } = await supabase
+    .from("schedules")
+    .select(
+      "*, profiles!schedules_owner_id_fkey(username, avatar_url), schedule_participants(user_id, status)"
+    )
+    .order("start_time", { ascending: true });
+
   return (
     <div className="flex flex-1 flex-col gap-6 p-8">
       <div className="flex items-center justify-between">
@@ -35,45 +19,102 @@ export default function SchedulesPage() {
           <TwEmoji emoji="📅" size={28} />
           <h1 className="text-xl font-bold">스케줄 관리</h1>
         </div>
-        <p className="text-sm text-zinc-500">총 {mockSchedules.length}개</p>
+        <p className="text-sm text-muted">총 {schedules?.length ?? 0}개</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {mockSchedules.map((schedule) => (
-          <div
-            key={schedule.id}
-            className="flex flex-col gap-3 rounded-xl border border-zinc-200 p-5 dark:border-zinc-800"
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold">{schedule.title}</h3>
-              <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium dark:bg-zinc-800">
-                {schedule.players}
-              </span>
-            </div>
-            <div className="flex flex-col gap-1 text-sm text-zinc-500">
-              <div className="flex items-center gap-2">
-                <TwEmoji emoji="🎮" size={14} />
-                <span>{schedule.game}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <TwEmoji emoji="👤" size={14} />
-                <span>{schedule.owner}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <TwEmoji emoji="🕐" size={14} />
-                <span>{schedule.startTime}</span>
-              </div>
-            </div>
-            <div className="flex gap-2 pt-1">
-              <button className="flex-1 rounded-md bg-zinc-100 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700">
-                수정
-              </button>
-              <button className="flex-1 rounded-md bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-100 dark:bg-red-950 dark:text-red-400 dark:hover:bg-red-900">
-                삭제
-              </button>
-            </div>
-          </div>
-        ))}
+      <div className="overflow-hidden rounded-2xl border border-card-border bg-card">
+        <table className="w-full text-left text-sm">
+          <thead className="border-b border-card-border bg-background">
+            <tr>
+              <th className="px-4 py-3 font-medium text-muted">게임</th>
+              <th className="px-4 py-3 font-medium text-muted">제목</th>
+              <th className="px-4 py-3 font-medium text-muted">주최자</th>
+              <th className="px-4 py-3 font-medium text-muted">유형</th>
+              <th className="px-4 py-3 font-medium text-muted">시작</th>
+              <th className="px-4 py-3 font-medium text-muted">인원</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-card-border">
+            {schedules?.map((schedule) => {
+              const owner = schedule.profiles as {
+                username: string;
+                avatar_url: string | null;
+              } | null;
+              const accepted = (
+                schedule.schedule_participants as { user_id: string; status: string }[]
+              ).filter((p) => p.status === "accepted").length;
+
+              return (
+                <tr key={schedule.id} className="transition-colors hover:bg-background">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      {schedule.game_image ? (
+                        <img
+                          src={schedule.game_image}
+                          alt={schedule.game_name}
+                          className="h-8 w-12 rounded object-cover"
+                        />
+                      ) : (
+                        <TwEmoji emoji="🎮" size={16} />
+                      )}
+                      <span className="text-muted">{schedule.game_name}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/schedules/${schedule.id}`}
+                      className="font-medium transition-colors hover:text-accent"
+                    >
+                      {schedule.title}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1.5">
+                      {owner?.avatar_url && (
+                        <img
+                          src={owner.avatar_url}
+                          alt={owner.username}
+                          className="h-5 w-5 rounded-full"
+                        />
+                      )}
+                      <span className="text-muted">{owner?.username ?? "-"}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                        schedule.schedule_type === "recurring"
+                          ? "bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-400"
+                          : "bg-card-border"
+                      }`}
+                    >
+                      {schedule.schedule_type === "recurring" ? "정기" : "단발"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-muted">
+                    {new Date(schedule.start_time).toLocaleDateString("ko-KR", {
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </td>
+                  <td className="px-4 py-3 text-muted">
+                    {accepted}
+                    {schedule.max_players ? ` / ${schedule.max_players}` : ""}명
+                  </td>
+                </tr>
+              );
+            })}
+            {(!schedules || schedules.length === 0) && (
+              <tr>
+                <td colSpan={6} className="px-4 py-8 text-center text-muted">
+                  등록된 스케줄이 없습니다
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );

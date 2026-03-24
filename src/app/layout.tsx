@@ -14,7 +14,18 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Game Scheduler",
-  description: "Game Scheduler",
+  description: "게임 일정을 친구들과 함께 관리하세요",
+  openGraph: {
+    title: "Game Scheduler",
+    description: "게임 일정을 친구들과 함께 관리하세요",
+    images: [{ url: "/og-image.jpg", width: 1546, height: 423 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Game Scheduler",
+    description: "게임 일정을 친구들과 함께 관리하세요",
+    images: ["/og-image.jpg"],
+  },
 };
 
 export default function RootLayout({

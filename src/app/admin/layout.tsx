@@ -1,12 +1,15 @@
 import Link from "next/link";
 import TwEmoji from "@/components/ui/TwEmoji";
 import { AdminSidebarNav } from "@/components/ui/AdminSidebarNav";
+import { requireAdmin } from "@/lib/auth";
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  await requireAdmin();
+
   return (
     <div className="flex flex-1">
       <aside className="flex w-56 flex-col bg-dark-card dark:bg-dark">

@@ -1,6 +1,27 @@
 import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
 export type UserRole = "master" | "admin" | "member";
+
+/** 로그인 필수 페이지에서 호출. 미로그인 시 /login으로 리다이렉트 */
+export async function requireAuth() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+  return user;
+}
+
+/** 관리자 페이지에서 호출. 권한 없으면 /dashboard로 리다이렉트 */
+export async function requireAdmin() {
+  const user = await requireAuth();
+  const { role } = await getCurrentUserRole();
+
+  if (!canAccessAdmin(role)) redirect("/dashboard");
+  return { user, role };
+}
 
 export async function getCurrentUserRole(): Promise<{
   userId: string | null;

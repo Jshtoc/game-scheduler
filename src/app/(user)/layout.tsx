@@ -3,6 +3,7 @@ import TwEmoji from "@/components/ui/TwEmoji";
 import { SidebarNav } from "@/components/ui/SidebarNav";
 import { RoleBadge } from "@/components/ui/RoleBadge";
 import { createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/auth";
 import { LogoutButton } from "./logout-button";
 import type { UserRole } from "@/lib/auth";
 
@@ -11,15 +12,13 @@ export default async function UserLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await requireAuth();
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("username, avatar_url, role")
-    .eq("id", user?.id ?? "")
+    .eq("id", user.id)
     .single();
 
   return (

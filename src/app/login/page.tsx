@@ -1,11 +1,20 @@
 import Link from "next/link";
 import TwEmoji from "@/components/ui/TwEmoji";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
 export default async function LoginPage({
   searchParams,
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) redirect("/dashboard");
+
   const { error } = await searchParams;
 
   return (

@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://game-scheduler-alpha.vercel.app"),
   title: "Game Scheduler",
   description: "게임 일정을 친구들과 함께 관리하세요",
   openGraph: {

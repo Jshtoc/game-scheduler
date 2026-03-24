@@ -43,9 +43,9 @@ export default async function SchedulesPage() {
         max_players: s.max_players,
         schedule_type: s.schedule_type,
         is_ended: s.is_ended ?? false,
-        owner: s.profiles as ScheduleCardData["owner"],
+        owner: s.profiles as unknown as ScheduleCardData["owner"],
         participants: (
-          s.schedule_participants as {
+          s.schedule_participants as unknown as {
             user_id: string;
             status: string;
             profiles: { username: string; avatar_url: string | null } | null;

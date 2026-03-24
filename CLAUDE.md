@@ -35,6 +35,7 @@
 | 컴포넌트 | 경로 | 설명 |
 |---------|------|------|
 | TwEmoji | `components/ui/TwEmoji.tsx` | Twemoji 렌더링 |
+| SteamLinkInput | `components/ui/SteamLinkInput.tsx` | Steam 링크로 게임 정보 자동 입력 |
 
 ### 3. TypeScript
 

@@ -1,0 +1,36 @@
+{
+  "eval_id": 2,
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "crud-list-create: 스케줄 목록 조회(GET)와 생성(POST) 라우트가 존재한다",
+      "passed": true,
+      "evidence": "api_schedules_route.ts exports GET (line 6) for listing schedules and POST (line 50) for creating schedules."
+    },
+    {
+      "text": "crud-update-delete: 스케줄 수정(PATCH/PUT)과 삭제(DELETE) 라우트가 존재한다",
+      "passed": true,
+      "evidence": "api_schedules_id_route.ts exports PATCH (line 36) for updating and DELETE (line 117) for deleting schedules."
+    },
+    {
+      "text": "crud-auth-check: 모든 엔드포인트에서 getUser()로 인증을 확인한다",
+      "passed": true,
+      "evidence": "All 6 route handlers (GET/POST in api_schedules_route.ts, GET/PATCH/DELETE in api_schedules_id_route.ts, GET in api_groups_id_schedules_route.ts) call supabase.auth.getUser() and return 401 if unauthorized."
+    },
+    {
+      "text": "crud-group-schedule: 그룹 소속 스케줄을 조회할 수 있는 로직이 포함되어 있다 (group_id 또는 group_members 참조)",
+      "passed": true,
+      "evidence": "api_schedules_route.ts filters by group_id query param (line 24); api_groups_id_schedules_route.ts provides a dedicated endpoint querying schedules by group_id with group_members membership check."
+    },
+    {
+      "text": "crud-typescript-types: 스케줄 관련 TypeScript 타입/인터페이스가 정의되어 있다",
+      "passed": true,
+      "evidence": "types_schedule.ts defines Schedule, ScheduleParticipant, CreateScheduleRequest, and UpdateScheduleRequest interfaces. lib_types_database.ts defines Database type with schedules and schedule_participants tables."
+    },
+    {
+      "text": "crud-no-any: 생성된 모든 파일에서 'any' 타입을 사용하지 않았다",
+      "passed": true,
+      "evidence": "Grep for the word 'any' across all 6 output files returned no matches. The code uses 'unknown' with type guards instead."
+    }
+  ]
+}

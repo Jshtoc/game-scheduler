@@ -1,0 +1,138 @@
+{
+  "skill_name": "game-scheduler-backend",
+  "iteration": 1,
+  "configurations": [
+    {
+      "name": "with_skill",
+      "evals": [
+        {
+          "eval_id": 1,
+          "eval_name": "supabase-discord-auth",
+          "pass_rate": 1.0,
+          "passed": 6,
+          "total": 6,
+          "duration_seconds": 95.7,
+          "total_tokens": 17963,
+          "expectations": [
+            {"text": "Supabase 서버 클라이언트 파일이 createServerClient를 사용", "passed": true, "evidence": "lib_supabase_server.ts uses createServerClient from @supabase/ssr"},
+            {"text": "Supabase 브라우저 클라이언트 파일이 createBrowserClient를 사용", "passed": true, "evidence": "lib_supabase_client.ts uses createBrowserClient from @supabase/ssr"},
+            {"text": "Discord OAuth 시작 라우트가 signInWithOAuth + provider: discord 사용", "passed": true, "evidence": "api_auth_discord_route.ts calls signInWithOAuth with provider: 'discord'"},
+            {"text": "OAuth 콜백 라우트가 exchangeCodeForSession 호출", "passed": true, "evidence": "api_auth_callback_route.ts calls exchangeCodeForSession(code)"},
+            {"text": "middleware.ts가 세션 갱신(getUser) 수행", "passed": true, "evidence": "middleware.ts delegates to updateSession which calls getUser()"},
+            {"text": "any 타입 미사용", "passed": true, "evidence": "No any type found in any output file"}
+          ]
+        },
+        {
+          "eval_id": 2,
+          "eval_name": "schedule-crud",
+          "pass_rate": 1.0,
+          "passed": 6,
+          "total": 6,
+          "duration_seconds": 111.7,
+          "total_tokens": 21398,
+          "expectations": [
+            {"text": "스케줄 목록 조회(GET)와 생성(POST) 라우트 존재", "passed": true, "evidence": "GET and POST handlers exist in api_schedules_route.ts"},
+            {"text": "스케줄 수정(PATCH)과 삭제(DELETE) 라우트 존재", "passed": true, "evidence": "PATCH and DELETE handlers in api_schedules_id_route.ts"},
+            {"text": "모든 엔드포인트에서 getUser() 인증 확인", "passed": true, "evidence": "All 6 route handlers call supabase.auth.getUser() with 401 on failure"},
+            {"text": "그룹 소속 스케줄 조회 로직 포함", "passed": true, "evidence": "group_id filtering and dedicated group schedules endpoint with membership verification"},
+            {"text": "TypeScript 타입/인터페이스 정의", "passed": true, "evidence": "types_schedule.ts defines 4 interfaces; lib_types_database.ts defines full Database type"},
+            {"text": "any 타입 미사용", "passed": true, "evidence": "No any usage found; unknown with type guards used instead"}
+          ]
+        },
+        {
+          "eval_id": 3,
+          "eval_name": "friends-feature",
+          "pass_rate": 0.833,
+          "passed": 5,
+          "total": 6,
+          "duration_seconds": 136.9,
+          "total_tokens": 20446,
+          "expectations": [
+            {"text": "친구 요청 보내기(POST) 구현", "passed": true, "evidence": "POST handler in api_friends_route.ts"},
+            {"text": "친구 요청 수락/거절(PATCH) 구현", "passed": false, "evidence": "PATCH supports accepted and blocked, but not rejected as expected"},
+            {"text": "친구 삭제(DELETE) 구현", "passed": true, "evidence": "DELETE handler in api_friends_[id]_route.ts"},
+            {"text": "양방향 친구 목록 조회", "passed": true, "evidence": "GET queries both requester_id and addressee_id"},
+            {"text": "중복 친구 요청 방지", "passed": true, "evidence": "Checks existing friendships before creating new request"},
+            {"text": "any 타입 미사용", "passed": true, "evidence": "No any type found"}
+          ]
+        }
+      ],
+      "summary": {
+        "avg_pass_rate": 0.944,
+        "total_passed": 17,
+        "total_assertions": 18,
+        "avg_duration_seconds": 114.8,
+        "avg_tokens": 19936
+      }
+    },
+    {
+      "name": "without_skill",
+      "evals": [
+        {
+          "eval_id": 1,
+          "eval_name": "supabase-discord-auth",
+          "pass_rate": 1.0,
+          "passed": 6,
+          "total": 6,
+          "duration_seconds": 115.6,
+          "total_tokens": 16121,
+          "expectations": [
+            {"text": "Supabase 서버 클라이언트 파일이 createServerClient를 사용", "passed": true, "evidence": "lib_supabase_server.ts uses createServerClient from @supabase/ssr"},
+            {"text": "Supabase 브라우저 클라이언트 파일이 createBrowserClient를 사용", "passed": true, "evidence": "lib_supabase_browser.ts uses createBrowserClient from @supabase/ssr"},
+            {"text": "Discord OAuth 시작 라우트가 signInWithOAuth + provider: discord 사용", "passed": true, "evidence": "app_login_actions.ts calls signInWithOAuth with provider: discord"},
+            {"text": "OAuth 콜백 라우트가 exchangeCodeForSession 호출", "passed": true, "evidence": "app_auth_callback_route.ts calls exchangeCodeForSession(code)"},
+            {"text": "middleware.ts가 세션 갱신(getUser) 수행", "passed": true, "evidence": "middleware.ts delegates to updateSession which calls getUser()"},
+            {"text": "any 타입 미사용", "passed": true, "evidence": "No any type found"}
+          ]
+        },
+        {
+          "eval_id": 2,
+          "eval_name": "schedule-crud",
+          "pass_rate": 0.833,
+          "passed": 5,
+          "total": 6,
+          "duration_seconds": 103.0,
+          "total_tokens": 15891,
+          "expectations": [
+            {"text": "스케줄 목록 조회(GET)와 생성(POST) 라우트 존재", "passed": true, "evidence": "GET and POST in api_schedules_route.ts"},
+            {"text": "스케줄 수정(PATCH)과 삭제(DELETE) 라우트 존재", "passed": true, "evidence": "PUT and DELETE in api_schedules_id_route.ts"},
+            {"text": "모든 엔드포인트에서 getUser() 인증 확인", "passed": false, "evidence": "No getUser() call found; no authentication performed"},
+            {"text": "그룹 소속 스케줄 조회 로직 포함", "passed": true, "evidence": "getSchedulesByGroupId filters by groupId"},
+            {"text": "TypeScript 타입/인터페이스 정의", "passed": true, "evidence": "Schedule, CreateScheduleRequest, UpdateScheduleRequest interfaces defined"},
+            {"text": "any 타입 미사용", "passed": true, "evidence": "No any usage found"}
+          ]
+        },
+        {
+          "eval_id": 3,
+          "eval_name": "friends-feature",
+          "pass_rate": 1.0,
+          "passed": 6,
+          "total": 6,
+          "duration_seconds": 183.6,
+          "total_tokens": 24788,
+          "expectations": [
+            {"text": "친구 요청 보내기(POST) 구현", "passed": true, "evidence": "POST handler in api_friends_route.ts"},
+            {"text": "친구 요청 수락/거절(PATCH) 구현", "passed": true, "evidence": "PATCH maps accept/reject to accepted/rejected status"},
+            {"text": "친구 삭제(DELETE) 구현", "passed": true, "evidence": "DELETE handler with bidirectional removal"},
+            {"text": "양방향 친구 목록 조회", "passed": true, "evidence": "addFriendship creates two records for both directions"},
+            {"text": "중복 친구 요청 방지", "passed": true, "evidence": "Checks existing pending requests in both directions"},
+            {"text": "any 타입 미사용", "passed": true, "evidence": "No any type found"}
+          ]
+        }
+      ],
+      "summary": {
+        "avg_pass_rate": 0.944,
+        "total_passed": 17,
+        "total_assertions": 18,
+        "avg_duration_seconds": 134.1,
+        "avg_tokens": 18933
+      }
+    }
+  ],
+  "delta": {
+    "pass_rate_diff": 0.0,
+    "duration_diff_seconds": -19.3,
+    "tokens_diff": 1003,
+    "notes": "With-skill was faster on average (-19.3s). Both scored 17/18 but failed on different assertions: with_skill used 'blocked' instead of 'rejected' for friend status; without_skill omitted auth checks in CRUD routes. The skill enforced consistent auth patterns but the friendships schema used 'blocked' instead of 'rejected'."
+  }
+}

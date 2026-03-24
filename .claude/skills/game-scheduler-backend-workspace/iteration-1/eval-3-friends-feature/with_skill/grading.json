@@ -1,0 +1,36 @@
+{
+  "eval_id": 3,
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "친구 요청 보내기(POST) 기능이 구현되어 있다",
+      "passed": true,
+      "evidence": "POST /api/friends handler in api_friends_route.ts (lines 114-208) creates a friendship record with status 'pending' after validating addressee_id, checking target user exists, and preventing self-requests."
+    },
+    {
+      "text": "친구 요청 수락/거절(PATCH) 기능이 구현되어 있다 (status를 accepted/rejected로 변경)",
+      "passed": false,
+      "evidence": "PATCH /api/friends/[id] handler exists in api_friends_[id]_route.ts (lines 9-86) and supports 'accepted' status, but uses 'blocked' instead of 'rejected' (line 36: status must be 'accepted' or 'blocked'). The assertion specifically requires 'rejected' status support."
+    },
+    {
+      "text": "친구 삭제(DELETE) 기능이 구현되어 있다",
+      "passed": true,
+      "evidence": "DELETE /api/friends/[id] handler in api_friends_[id]_route.ts (lines 88-134) deletes the friendship record after verifying the requesting user is part of the friendship."
+    },
+    {
+      "text": "친구 목록 조회(GET)가 양방향으로 동작한다 (requester/addressee 모두 검색)",
+      "passed": true,
+      "evidence": "GET handler queries friendships where user is requester_id (line 68) and where user is addressee_id (line 90), then merges both into a unified 'friends' array (lines 98-109)."
+    },
+    {
+      "text": "중복 친구 요청을 방지하는 로직이 있다",
+      "passed": true,
+      "evidence": "POST handler checks for existing relationships in both directions using .or() query (lines 158-190), returning 409 for already-friends or pending requests. DB also has UNIQUE constraint on (requester_id, addressee_id)."
+    },
+    {
+      "text": "생성된 모든 파일에서 'any' 타입을 사용하지 않았다",
+      "passed": true,
+      "evidence": "Grep search for 'any' across all 4 output files returned no matches. All types are properly defined using specific types (string, FriendshipStatus, unknown, etc.)."
+    }
+  ]
+}

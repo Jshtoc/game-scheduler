@@ -23,7 +23,7 @@ export async function createSchedule(formData: FormData) {
   const description = (formData.get("description") as string) || null;
   const groupId = (formData.get("group_id") as string) || null;
 
-  // 시작 시간 처리
+  // 시작 시간 처리 (KST 타임존 명시)
   let startTime: string;
   let recurringDays: number[] | null = null;
   let recurringTime: string | null = null;
@@ -33,9 +33,10 @@ export async function createSchedule(formData: FormData) {
     recurringTime = formData.get("recurring_time") as string;
     const daysRaw = formData.get("recurring_days") as string;
     recurringDays = JSON.parse(daysRaw || "[]") as number[];
-    startTime = `${startDate}T${recurringTime}`;
+    startTime = `${startDate}T${recurringTime}+09:00`;
   } else {
-    startTime = formData.get("start_time") as string;
+    const rawTime = formData.get("start_time") as string;
+    startTime = `${rawTime}+09:00`;
   }
 
   const { data, error } = await supabase
@@ -115,9 +116,10 @@ export async function updateSchedule(formData: FormData) {
     recurringTime = formData.get("recurring_time") as string;
     const daysRaw = formData.get("recurring_days") as string;
     recurringDays = JSON.parse(daysRaw || "[]") as number[];
-    startTime = `${startDate}T${recurringTime}`;
+    startTime = `${startDate}T${recurringTime}+09:00`;
   } else {
-    startTime = formData.get("start_time") as string;
+    const rawTime = formData.get("start_time") as string;
+    startTime = `${rawTime}+09:00`;
   }
 
   const { error } = await supabase

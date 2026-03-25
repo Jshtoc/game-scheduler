@@ -1,7 +1,6 @@
 "use client";
 
-function toGoogleCalendarDate(input: string | Date) {
-  const date = typeof input === "string" ? new Date(input) : input;
+function formatLocalDate(date: Date) {
   const y = date.getFullYear();
   const mo = String(date.getMonth() + 1).padStart(2, "0");
   const d = String(date.getDate()).padStart(2, "0");
@@ -11,9 +10,12 @@ function toGoogleCalendarDate(input: string | Date) {
   return `${y}${mo}${d}T${h}${mi}${s}`;
 }
 
+function addHours(date: Date, hours: number): Date {
+  return new Date(date.getTime() + hours * 60 * 60 * 1000);
+}
+
 function getNextDayOfWeek(startDate: Date, targetDay: number): Date {
   const date = new Date(startDate);
-  // 시작일 다음 날부터 찾기
   date.setDate(date.getDate() + 1);
   while (date.getDay() !== targetDay) {
     date.setDate(date.getDate() + 1);
@@ -54,44 +56,38 @@ export function AddToCalendarButton({
       .join("\n");
   }
 
-  function openGoogleCalendar(params: URLSearchParams) {
-    window.open(
-      `https://calendar.google.com/calendar/render?${params.toString()}`,
-      "_blank"
-    );
+  function buildUrl(params: Record<string, string>) {
+    const p = new URLSearchParams({ action: "TEMPLATE", ...params });
+    return `https://calendar.google.com/calendar/render?${p.toString()}`;
   }
 
   function handleClick() {
+    const localStart = new Date(startTime);
+    const details = buildDetails();
+    const urls: string[] = [];
+
     if (scheduleType === "recurring" && recurringDays && recurringDays.length > 0) {
-      // 정기게임: 첫 시작일 1회 + 정기 요일 반복, 2개 탭
-      const startDate = new Date(startTime);
-      const startDayOfWeek = startDate.getDay();
+      const startDayOfWeek = localStart.getDay();
       const isStartDayInRecurring = recurringDays.includes(startDayOfWeek);
 
-      // 1. 첫 시작일이 정기 요일에 포함되지 않으면 단발 이벤트 생성
+      // 1. 첫 시작일이 정기 요일에 포함되지 않으면 단발 이벤트
       if (!isStartDayInRecurring) {
-        const start = toGoogleCalendarDate(startTime);
-        const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
-        const end = toGoogleCalendarDate(endDate);
-
-        const params = new URLSearchParams({
-          action: "TEMPLATE",
-          text: `${gameName} - ${title} (첫 게임)`,
-          dates: `${start}/${end}`,
-          details: buildDetails(),
-        });
-        openGoogleCalendar(params);
+        urls.push(
+          buildUrl({
+            text: `${gameName} - ${title} (첫 게임)`,
+            dates: `${formatLocalDate(localStart)}/${formatLocalDate(addHours(localStart, 2))}`,
+            details,
+          })
+        );
       }
 
-      // 2. 정기 요일 반복 이벤트
-      // 정기 요일 중 가장 가까운 날짜를 시작점으로
+      // 2. 정기 반복 이벤트
       let recurStart: Date;
       if (isStartDayInRecurring) {
-        recurStart = startDate;
+        recurStart = new Date(localStart);
       } else {
-        // 첫 시작일 이후 가장 가까운 정기 요일 찾기
         const sorted = recurringDays
-          .map((d) => getNextDayOfWeek(startDate, d))
+          .map((d) => getNextDayOfWeek(localStart, d))
           .sort((a, b) => a.getTime() - b.getTime());
         recurStart = sorted[0];
       }
@@ -101,42 +97,37 @@ export function AddToCalendarButton({
         const [h, m] = recurringTime.split(":").map(Number);
         recurStart.setHours(h, m, 0, 0);
       } else {
-        recurStart.setHours(startDate.getHours(), startDate.getMinutes(), 0, 0);
+        recurStart.setHours(localStart.getHours(), localStart.getMinutes(), 0, 0);
       }
-
-      const recurStartStr = toGoogleCalendarDate(recurStart);
-      const recurEndDate = new Date(recurStart.getTime() + 2 * 60 * 60 * 1000);
-      const recurEndStr = toGoogleCalendarDate(recurEndDate);
 
       const days = recurringDays.map((d) => dayToRRule[d]).join(",");
-      const recurParams = new URLSearchParams({
-        action: "TEMPLATE",
-        text: `${gameName} - ${title}`,
-        dates: `${recurStartStr}/${recurEndStr}`,
-        details: buildDetails(),
-        recur: `RRULE:FREQ=WEEKLY;BYDAY=${days}`,
-      });
-
-      // 첫 시작일이 정기 요일이면 1개만, 아니면 약간 딜레이 후 두 번째 탭
-      if (!isStartDayInRecurring) {
-        setTimeout(() => openGoogleCalendar(recurParams), 500);
-      } else {
-        openGoogleCalendar(recurParams);
-      }
+      urls.push(
+        buildUrl({
+          text: `${gameName} - ${title}`,
+          dates: `${formatLocalDate(recurStart)}/${formatLocalDate(addHours(recurStart, 2))}`,
+          details,
+          recur: `RRULE:FREQ=WEEKLY;BYDAY=${days}`,
+        })
+      );
     } else {
       // 단발성
-      const start = toGoogleCalendarDate(startTime);
-      const endDate = new Date(new Date(startTime).getTime() + 2 * 60 * 60 * 1000);
-      const end = toGoogleCalendarDate(endDate);
-
-      const params = new URLSearchParams({
-        action: "TEMPLATE",
-        text: `${gameName} - ${title}`,
-        dates: `${start}/${end}`,
-        details: buildDetails(),
-      });
-      openGoogleCalendar(params);
+      urls.push(
+        buildUrl({
+          text: `${gameName} - ${title}`,
+          dates: `${formatLocalDate(localStart)}/${formatLocalDate(addHours(localStart, 2))}`,
+          details,
+        })
+      );
     }
+
+    // 첫 번째는 바로, 두 번째부터는 딜레이
+    urls.forEach((url, i) => {
+      if (i === 0) {
+        window.open(url, "_blank");
+      } else {
+        setTimeout(() => window.open(url, "_blank"), 300 * i);
+      }
+    });
   }
 
   return (

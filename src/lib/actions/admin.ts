@@ -80,7 +80,7 @@ export async function kickUser(formData: FormData) {
   revalidatePath("/admin/users");
 }
 
-export async function updateUserPenalty(formData: FormData) {
+export async function updateUserPenalties(formData: FormData) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -98,27 +98,26 @@ export async function updateUserPenalty(formData: FormData) {
     redirect("/admin/users");
   }
 
-  const targetId = formData.get("user_id") as string;
-  const field = formData.get("field") as string;
-  const action = formData.get("action") as string;
+  const changesRaw = formData.get("changes") as string;
+  if (!changesRaw) return;
 
-  if (!["noshow_count", "late_count", "warning_count"].includes(field)) return;
+  const changes = JSON.parse(changesRaw) as {
+    userId: string;
+    noshow_count: number;
+    late_count: number;
+    warning_count: number;
+  }[];
 
-  const { data: target } = await supabase
-    .from("profiles")
-    .select(field)
-    .eq("id", targetId)
-    .single();
-
-  if (!target) return;
-
-  const current = (target as unknown as Record<string, number>)[field] ?? 0;
-  const newValue = action === "increment" ? current + 1 : Math.max(0, current - 1);
-
-  await supabase
-    .from("profiles")
-    .update({ [field]: newValue })
-    .eq("id", targetId);
+  for (const change of changes) {
+    await supabase
+      .from("profiles")
+      .update({
+        noshow_count: change.noshow_count,
+        late_count: change.late_count,
+        warning_count: change.warning_count,
+      })
+      .eq("id", change.userId);
+  }
 
   revalidatePath("/admin/users");
 }

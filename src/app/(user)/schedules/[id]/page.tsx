@@ -1,9 +1,10 @@
 import Link from "next/link";
 import TwEmoji from "@/components/ui/TwEmoji";
 import { AddToCalendarButton } from "@/components/ui/AddToCalendarButton";
+import { JoinButton } from "@/components/ui/JoinButton";
 import { LoadingForm } from "@/components/ui/LoadingForm";
 import { createClient } from "@/lib/supabase/server";
-import { deleteSchedule, endSchedule, joinSchedule, leaveSchedule } from "@/lib/actions/schedule";
+import { deleteSchedule, endSchedule, leaveSchedule } from "@/lib/actions/schedule";
 import { getCurrentUserRole, canEditSchedule } from "@/lib/auth";
 import { notFound, redirect } from "next/navigation";
 
@@ -34,6 +35,25 @@ export default async function ScheduleDetailPage({
     .from("schedule_participants")
     .select("*, profiles(username, avatar_url)")
     .eq("schedule_id", id);
+
+  // 내가 참가 중인 다른 스케줄 (겹침 체크용)
+  const { data: myParticipations } = await supabase
+    .from("schedule_participants")
+    .select("schedule_id, schedules(title, game_name, start_time, schedule_type, recurring_days)")
+    .eq("user_id", user.id)
+    .eq("status", "accepted")
+    .neq("schedule_id", id);
+
+  const mySchedules = (myParticipations ?? []).map((p) => {
+    const s = p.schedules as unknown as {
+      title: string;
+      game_name: string;
+      start_time: string;
+      schedule_type: string;
+      recurring_days: number[] | null;
+    };
+    return s;
+  }).filter(Boolean);
 
   const isOwner = schedule.owner_id === user.id;
   const myParticipation = participants?.find((p) => p.user_id === user.id);
@@ -189,17 +209,14 @@ export default async function ScheduleDetailPage({
             </button>
           </LoadingForm>
         ) : (
-          <LoadingForm action={joinSchedule}>
-            <input type="hidden" name="schedule_id" value={id} />
-            <input type="hidden" name="status" value="accepted" />
-            <button
-              type="submit"
-              disabled={isFull}
-              className="rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-            >
-              {isFull ? "마감됨" : "참가하기"}
-            </button>
-          </LoadingForm>
+          <JoinButton
+            scheduleId={id}
+            targetStartTime={schedule.start_time}
+            targetScheduleType={schedule.schedule_type}
+            targetRecurringDays={schedule.recurring_days as number[] | null}
+            isFull={isFull}
+            mySchedules={mySchedules}
+          />
         )}
         <AddToCalendarButton
           title={schedule.title}

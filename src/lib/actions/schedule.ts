@@ -230,6 +230,8 @@ export async function joinSchedule(formData: FormData) {
   );
 
   revalidatePath(`/schedules/${scheduleId}`);
+  revalidatePath("/schedules");
+  redirect(`/schedules/${scheduleId}`);
 }
 
 export async function leaveSchedule(formData: FormData) {
@@ -249,4 +251,6 @@ export async function leaveSchedule(formData: FormData) {
     .eq("user_id", user.id);
 
   revalidatePath(`/schedules/${scheduleId}`);
+  revalidatePath("/schedules");
+  redirect(`/schedules/${scheduleId}`);
 }

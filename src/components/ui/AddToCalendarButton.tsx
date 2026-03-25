@@ -1,8 +1,14 @@
 "use client";
 
-function toGoogleCalendarDate(iso: string) {
-  const date = new Date(iso);
-  return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+function toGoogleCalendarDate(input: string | Date) {
+  const date = typeof input === "string" ? new Date(input) : input;
+  const y = date.getFullYear();
+  const mo = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  const h = String(date.getHours()).padStart(2, "0");
+  const mi = String(date.getMinutes()).padStart(2, "0");
+  const s = String(date.getSeconds()).padStart(2, "0");
+  return `${y}${mo}${d}T${h}${mi}${s}`;
 }
 
 function getNextDayOfWeek(startDate: Date, targetDay: number): Date {
@@ -66,7 +72,7 @@ export function AddToCalendarButton({
       if (!isStartDayInRecurring) {
         const start = toGoogleCalendarDate(startTime);
         const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
-        const end = toGoogleCalendarDate(endDate.toISOString());
+        const end = toGoogleCalendarDate(endDate);
 
         const params = new URLSearchParams({
           action: "TEMPLATE",
@@ -98,9 +104,9 @@ export function AddToCalendarButton({
         recurStart.setHours(startDate.getHours(), startDate.getMinutes(), 0, 0);
       }
 
-      const recurStartStr = toGoogleCalendarDate(recurStart.toISOString());
+      const recurStartStr = toGoogleCalendarDate(recurStart);
       const recurEndDate = new Date(recurStart.getTime() + 2 * 60 * 60 * 1000);
-      const recurEndStr = toGoogleCalendarDate(recurEndDate.toISOString());
+      const recurEndStr = toGoogleCalendarDate(recurEndDate);
 
       const days = recurringDays.map((d) => dayToRRule[d]).join(",");
       const recurParams = new URLSearchParams({
@@ -121,7 +127,7 @@ export function AddToCalendarButton({
       // 단발성
       const start = toGoogleCalendarDate(startTime);
       const endDate = new Date(new Date(startTime).getTime() + 2 * 60 * 60 * 1000);
-      const end = toGoogleCalendarDate(endDate.toISOString());
+      const end = toGoogleCalendarDate(endDate);
 
       const params = new URLSearchParams({
         action: "TEMPLATE",

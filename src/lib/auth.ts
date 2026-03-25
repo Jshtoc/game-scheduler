@@ -11,6 +11,34 @@ export async function requireAuth() {
   } = await supabase.auth.getUser();
 
   if (!user) redirect("/login");
+
+  // 프로필이 없으면 자동 생성
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile) {
+    await supabase.from("profiles").insert({
+      id: user.id,
+      discord_id:
+        user.user_metadata?.provider_id ??
+        user.user_metadata?.sub ??
+        user.id,
+      username:
+        user.user_metadata?.custom_claims?.global_name ??
+        user.user_metadata?.full_name ??
+        user.user_metadata?.name ??
+        "User",
+      avatar_url: user.user_metadata?.avatar_url ?? null,
+      role: "member",
+      noshow_count: 0,
+      late_count: 0,
+      warning_count: 0,
+    });
+  }
+
   return user;
 }
 

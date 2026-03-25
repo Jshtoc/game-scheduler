@@ -35,16 +35,16 @@ export default async function EditSchedulePage({
 
   if (!schedule) notFound();
 
-  // 주최자 또는 관리자만 수정 가능
+  // 주최자 또는 사이트 마스터/관리자만 수정 가능
   const isOwner = schedule.owner_id === user.id;
-  const { data: myRole } = await supabase
-    .from("schedule_participants")
+  const { data: profile } = await supabase
+    .from("profiles")
     .select("role")
-    .eq("schedule_id", id)
-    .eq("user_id", user.id)
+    .eq("id", user.id)
     .single();
 
-  if (!isOwner && myRole?.role !== "admin") notFound();
+  const isSiteAdmin = profile?.role === "master" || profile?.role === "admin";
+  if (!isOwner && !isSiteAdmin) notFound();
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-4 md:p-8">

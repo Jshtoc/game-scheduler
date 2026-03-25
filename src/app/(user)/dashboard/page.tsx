@@ -9,57 +9,39 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("username")
-    .eq("id", user?.id ?? "")
-    .single();
+  // 프로필 + 참가 스케줄을 병렬로 가져오기
+  const [profileRes, participationsRes] = await Promise.all([
+    supabase.from("profiles").select("username").eq("id", user?.id ?? "").single(),
+    supabase
+      .from("schedule_participants")
+      .select("schedule_id, schedules(id, title, game_name, game_image, start_time, schedule_type, recurring_days)")
+      .eq("user_id", user?.id ?? "")
+      .eq("status", "accepted"),
+  ]);
 
-  // 내가 참가 중인 스케줄 ID
-  const { data: participations } = await supabase
-    .from("schedule_participants")
-    .select("schedule_id")
-    .eq("user_id", user?.id ?? "")
-    .eq("status", "accepted");
+  const profile = profileRes.data;
+  const participations = participationsRes.data;
 
-  const scheduleIds = participations?.map((p) => p.schedule_id) ?? [];
-  const scheduleCount = scheduleIds.length;
+  const allSchedules = (participations ?? []).map((p) => {
+    const s = p.schedules as unknown as {
+      id: string;
+      title: string;
+      game_name: string;
+      game_image: string | null;
+      start_time: string;
+      schedule_type: string;
+      recurring_days: number[] | null;
+    };
+    return s;
+  }).filter(Boolean);
 
-  // 내 스케줄 전체 (달력용)
-  let allSchedules: {
-    id: string;
-    title: string;
-    game_name: string;
-    game_image: string | null;
-    start_time: string;
-    schedule_type: string;
-    recurring_days: number[] | null;
-  }[] = [];
+  const scheduleCount = allSchedules.length;
 
-  // 다가오는 스케줄 (상단 표시용)
-  let upcomingSchedules: {
-    id: string;
-    title: string;
-    game_name: string;
-    start_time: string;
-  }[] = [];
-
-  if (scheduleIds.length > 0) {
-    const { data } = await supabase
-      .from("schedules")
-      .select("id, title, game_name, game_image, start_time, schedule_type, recurring_days")
-      .in("id", scheduleIds);
-    allSchedules = data ?? [];
-
-    const { data: upcoming } = await supabase
-      .from("schedules")
-      .select("id, title, game_name, start_time")
-      .in("id", scheduleIds)
-      .gte("start_time", new Date().toISOString())
-      .order("start_time", { ascending: true })
-      .limit(5);
-    upcomingSchedules = upcoming ?? [];
-  }
+  const now = new Date();
+  const upcomingSchedules = allSchedules
+    .filter((s) => new Date(s.start_time) >= now || s.schedule_type === "recurring")
+    .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())
+    .slice(0, 5);
 
   const nextSchedule = upcomingSchedules[0];
   const moreCount = upcomingSchedules.length - 1;
@@ -75,7 +57,6 @@ export default async function DashboardPage() {
 
       {/* 상단 카드 */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {/* 좌측: 내 스케줄 수 */}
         <div className="flex items-center gap-4 rounded-2xl border border-card-border bg-card p-5">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-dark-card">
             <TwEmoji emoji="📅" size={24} />
@@ -86,7 +67,6 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* 우측: 가장 빨리 다가오는 스케줄 */}
         <div className="flex items-center justify-between rounded-2xl border border-card-border bg-card p-5">
           {nextSchedule ? (
             <>
@@ -140,7 +120,6 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* 달력 */}
       <Calendar schedules={allSchedules} />
     </div>
   );

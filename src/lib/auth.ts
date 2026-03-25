@@ -3,9 +3,6 @@ import { redirect } from "next/navigation";
 
 export type UserRole = "master" | "admin" | "member";
 
-// 프로필 생성 시도한 유저 캐시 (서버 요청 단위)
-const checkedUsers = new Set<string>();
-
 /** 로그인 필수 페이지에서 호출. 미로그인 시 /login으로 리다이렉트 */
 export async function requireAuth() {
   const supabase = await createClient();
@@ -15,44 +12,60 @@ export async function requireAuth() {
 
   if (!user) redirect("/login");
 
-  // 프로필 자동 생성 (첫 요청만)
-  if (!checkedUsers.has(user.id)) {
-    checkedUsers.add(user.id);
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile) {
-      await supabase.from("profiles").upsert({
-        id: user.id,
-        discord_id:
-          user.user_metadata?.provider_id ??
-          user.user_metadata?.sub ??
-          user.id,
-        username:
-          user.user_metadata?.custom_claims?.global_name ??
-          user.user_metadata?.full_name ??
-          user.user_metadata?.name ??
-          "User",
-        avatar_url: user.user_metadata?.avatar_url ?? null,
-        role: "member",
-        noshow_count: 0,
-        late_count: 0,
-        warning_count: 0,
-      }, { onConflict: "id" });
-    }
-  }
-
   return user;
+}
+
+/** 프로필이 없으면 자동 생성 (레이아웃에서 1번만 호출) */
+export async function ensureProfile(userId: string, metadata: Record<string, unknown>) {
+  const supabase = await createClient();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, username, avatar_url, role")
+    .eq("id", userId)
+    .single();
+
+  if (profile) return profile;
+
+  const customClaims = metadata?.custom_claims as Record<string, string> | undefined;
+
+  await supabase.from("profiles").upsert({
+    id: userId,
+    discord_id:
+      (metadata?.provider_id as string) ??
+      (metadata?.sub as string) ??
+      userId,
+    username:
+      customClaims?.global_name ??
+      (metadata?.full_name as string) ??
+      (metadata?.name as string) ??
+      "User",
+    avatar_url: (metadata?.avatar_url as string) ?? null,
+    role: "member",
+    noshow_count: 0,
+    late_count: 0,
+    warning_count: 0,
+  }, { onConflict: "id" });
+
+  const { data: newProfile } = await supabase
+    .from("profiles")
+    .select("id, username, avatar_url, role")
+    .eq("id", userId)
+    .single();
+
+  return newProfile;
 }
 
 /** 관리자 페이지에서 호출. 권한 없으면 /dashboard로 리다이렉트 */
 export async function requireAdmin() {
   const user = await requireAuth();
-  const { role } = await getCurrentUserRole();
+  const supabase = await createClient();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
 
+  const role = (profile?.role as UserRole) ?? "member";
   if (!canAccessAdmin(role)) redirect("/dashboard");
   return { user, role };
 }

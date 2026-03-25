@@ -3,8 +3,7 @@ import TwEmoji from "@/components/ui/TwEmoji";
 import { SidebarNav } from "@/components/ui/SidebarNav";
 import { MobileNav } from "@/components/ui/MobileNav";
 import { RoleBadge } from "@/components/ui/RoleBadge";
-import { createClient } from "@/lib/supabase/server";
-import { requireAuth } from "@/lib/auth";
+import { requireAuth, ensureProfile } from "@/lib/auth";
 import { LogoutButton } from "./logout-button";
 import type { UserRole } from "@/lib/auth";
 
@@ -14,13 +13,7 @@ export default async function UserLayout({
   children: React.ReactNode;
 }>) {
   const user = await requireAuth();
-  const supabase = await createClient();
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("username, avatar_url, role")
-    .eq("id", user.id)
-    .single();
+  const profile = await ensureProfile(user.id, user.user_metadata);
 
   return (
     <div className="flex flex-1 flex-col md:flex-row">

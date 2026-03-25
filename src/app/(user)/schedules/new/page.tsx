@@ -2,6 +2,7 @@ import Link from "next/link";
 import TwEmoji from "@/components/ui/TwEmoji";
 import { SteamLinkInput } from "@/components/ui/SteamLinkInput";
 import { ScheduleFormFields } from "@/components/ui/ScheduleForm";
+import { LoadingForm } from "@/components/ui/LoadingForm";
 import { createSchedule } from "@/lib/actions/schedule";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -21,25 +22,25 @@ export default async function NewSchedulePage() {
         <h1 className="text-xl font-bold">새 스케줄</h1>
       </div>
 
-      <form action={createSchedule} className="flex max-w-lg flex-col gap-5">
+      <LoadingForm action={createSchedule} className="flex max-w-lg flex-col gap-5">
         <SteamLinkInput />
         <ScheduleFormFields />
 
         <div className="flex gap-3 pt-2">
           <button
             type="submit"
-            className="rounded-lg bg-zinc-900 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+            className="rounded-xl bg-accent px-6 py-2.5 text-sm font-bold text-dark transition-colors hover:bg-accent-hover"
           >
             스케줄 생성
           </button>
           <Link
             href="/schedules"
-            className="rounded-lg border border-zinc-200 px-6 py-2.5 text-sm font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
+            className="rounded-xl border border-card-border px-6 py-2.5 text-sm font-medium transition-colors hover:border-accent hover:text-accent"
           >
             취소
           </Link>
         </div>
-      </form>
+      </LoadingForm>
     </div>
   );
 }

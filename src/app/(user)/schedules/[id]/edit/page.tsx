@@ -2,6 +2,7 @@ import Link from "next/link";
 import TwEmoji from "@/components/ui/TwEmoji";
 import { SteamLinkInput } from "@/components/ui/SteamLinkInput";
 import { ScheduleFormFields } from "@/components/ui/ScheduleForm";
+import { LoadingForm } from "@/components/ui/LoadingForm";
 import { createClient } from "@/lib/supabase/server";
 import { updateSchedule } from "@/lib/actions/schedule";
 import { notFound, redirect } from "next/navigation";
@@ -52,7 +53,7 @@ export default async function EditSchedulePage({
         <h1 className="text-xl font-bold">스케줄 수정</h1>
       </div>
 
-      <form action={updateSchedule} className="flex max-w-lg flex-col gap-5">
+      <LoadingForm action={updateSchedule} className="flex max-w-lg flex-col gap-5">
         <input type="hidden" name="id" value={id} />
 
         <SteamLinkInput
@@ -86,7 +87,7 @@ export default async function EditSchedulePage({
             취소
           </Link>
         </div>
-      </form>
+      </LoadingForm>
     </div>
   );
 }

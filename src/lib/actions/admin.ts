@@ -80,6 +80,39 @@ export async function kickUser(formData: FormData) {
   revalidatePath("/admin/users");
 }
 
+export async function bulkDeleteSchedules(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const { data: myProfile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (myProfile?.role !== "master" && myProfile?.role !== "admin") {
+    redirect("/admin/schedules");
+  }
+
+  const idsRaw = formData.get("ids") as string;
+  if (!idsRaw) return;
+
+  const ids = JSON.parse(idsRaw) as string[];
+
+  for (const id of ids) {
+    await supabase.from("schedule_participants").delete().eq("schedule_id", id);
+    await supabase.from("schedules").delete().eq("id", id);
+  }
+
+  revalidatePath("/admin/schedules");
+  revalidatePath("/schedules");
+  revalidatePath("/dashboard");
+}
+
 export async function updateUserPenalties(formData: FormData) {
   const supabase = await createClient();
   const {

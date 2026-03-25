@@ -1,6 +1,7 @@
 import Link from "next/link";
 import TwEmoji from "@/components/ui/TwEmoji";
 import { AddToCalendarButton } from "@/components/ui/AddToCalendarButton";
+import { LoadingForm } from "@/components/ui/LoadingForm";
 import { createClient } from "@/lib/supabase/server";
 import { deleteSchedule, endSchedule, joinSchedule, leaveSchedule } from "@/lib/actions/schedule";
 import { getCurrentUserRole, canEditSchedule } from "@/lib/auth";
@@ -60,7 +61,7 @@ export default async function ScheduleDetailPage({
             </Link>
           )}
           {canEdit && !schedule.is_ended && schedule.schedule_type === "recurring" && (
-            <form action={endSchedule}>
+            <LoadingForm action={endSchedule}>
               <input type="hidden" name="id" value={id} />
               <button
                 type="submit"
@@ -68,10 +69,10 @@ export default async function ScheduleDetailPage({
               >
                 종료
               </button>
-            </form>
+            </LoadingForm>
           )}
           {canEdit && (
-            <form action={deleteSchedule}>
+            <LoadingForm action={deleteSchedule}>
               <input type="hidden" name="id" value={id} />
               <button
                 type="submit"
@@ -79,7 +80,7 @@ export default async function ScheduleDetailPage({
               >
                 삭제
               </button>
-            </form>
+            </LoadingForm>
           )}
         </div>
       </div>
@@ -178,7 +179,7 @@ export default async function ScheduleDetailPage({
       {/* 참가 / 참가 취소 버튼 */}
       <div className="flex gap-2">
         {myParticipation ? (
-          <form action={leaveSchedule}>
+          <LoadingForm action={leaveSchedule}>
             <input type="hidden" name="schedule_id" value={id} />
             <button
               type="submit"
@@ -186,9 +187,9 @@ export default async function ScheduleDetailPage({
             >
               참가 취소
             </button>
-          </form>
+          </LoadingForm>
         ) : (
-          <form action={joinSchedule}>
+          <LoadingForm action={joinSchedule}>
             <input type="hidden" name="schedule_id" value={id} />
             <input type="hidden" name="status" value="accepted" />
             <button
@@ -198,7 +199,7 @@ export default async function ScheduleDetailPage({
             >
               {isFull ? "마감됨" : "참가하기"}
             </button>
-          </form>
+          </LoadingForm>
         )}
         <AddToCalendarButton
           title={schedule.title}

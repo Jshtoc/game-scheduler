@@ -2,6 +2,7 @@ import TwEmoji from "@/components/ui/TwEmoji";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ScheduleCard } from "@/components/ui/ScheduleCard";
+import { SuccessModal } from "@/components/ui/SuccessModal";
 import type { ScheduleCardData } from "@/components/ui/ScheduleCard";
 
 export default async function SchedulesPage() {
@@ -65,6 +66,14 @@ export default async function SchedulesPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-4 md:p-8">
+      <SuccessModal
+        configs={[
+          { paramKey: "created", message: "스케줄이 생성되었습니다!" },
+          { paramKey: "updated", message: "스케줄이 수정되었습니다!" },
+          { paramKey: "ended", message: "스케줄이 종료되었습니다!" },
+          { paramKey: "deleted", message: "스케줄이 삭제되었습니다!" },
+        ]}
+      />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <TwEmoji emoji="📅" size={28} />

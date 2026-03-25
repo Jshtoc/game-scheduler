@@ -13,7 +13,7 @@ export async function createSchedule(formData: FormData) {
   if (!user) redirect("/login");
 
   const title = formData.get("title") as string;
-  const gameName = formData.get("game_name") as string;
+  const gameName = (formData.get("game_name") as string) || "미정";
   const gameImage = (formData.get("game_image") as string) || null;
   const gameStoreUrl = (formData.get("game_store_url") as string) || null;
   const scheduleType = (formData.get("schedule_type") as string) || "once";
@@ -70,7 +70,7 @@ export async function createSchedule(formData: FormData) {
 
   revalidatePath("/schedules");
   revalidatePath("/dashboard");
-  redirect(`/schedules/${data.id}`);
+  redirect("/schedules?created=true");
 }
 
 export async function updateSchedule(formData: FormData) {
@@ -146,7 +146,7 @@ export async function updateSchedule(formData: FormData) {
   revalidatePath("/schedules");
   revalidatePath(`/schedules/${id}`);
   revalidatePath("/dashboard");
-  redirect(`/schedules/${id}`);
+  redirect("/schedules?updated=true");
 }
 
 export async function endSchedule(formData: FormData) {
@@ -177,7 +177,7 @@ export async function endSchedule(formData: FormData) {
   revalidatePath("/schedules");
   revalidatePath("/schedules/board");
   revalidatePath("/dashboard");
-  redirect(`/schedules/${id}`);
+  redirect("/schedules?ended=true");
 }
 
 export async function deleteSchedule(formData: FormData) {
@@ -206,7 +206,7 @@ export async function deleteSchedule(formData: FormData) {
 
   revalidatePath("/schedules");
   revalidatePath("/dashboard");
-  redirect("/schedules");
+  redirect("/schedules?deleted=true");
 }
 
 export async function joinSchedule(formData: FormData) {

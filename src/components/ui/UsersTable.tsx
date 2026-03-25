@@ -6,6 +6,7 @@ import TwEmoji from "@/components/ui/TwEmoji";
 import { RoleBadge } from "@/components/ui/RoleBadge";
 import { RoleSelect } from "@/components/ui/RoleSelect";
 import { PenaltyCounter } from "@/components/ui/PenaltyCounter";
+import { LoadingOverlay } from "@/components/ui/GlobalLoading";
 import { kickUser, updateUserPenalties } from "@/lib/actions/admin";
 import type { UserRole } from "@/lib/auth";
 
@@ -51,10 +52,24 @@ export function UsersTable({
   const router = useRouter();
   const [isRefreshing, startRefresh] = useTransition();
   const [isApplying, startApply] = useTransition();
+  const [isKicking, startKick] = useTransition();
   const [query, setQuery] = useState("");
   const [sortKey, setSortKey] = useState("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [penaltyChanges, setPenaltyChanges] = useState<PenaltyChanges>({});
+
+  function handleKick(userId: string, username: string) {
+    if (!confirm(`"${username}" 회원을 탈퇴시키겠습니까?`)) return;
+
+    const formData = new FormData();
+    formData.set("user_id", userId);
+
+    startKick(async () => {
+      await kickUser(formData);
+      alert("탈퇴 처리되었습니다.");
+      router.refresh();
+    });
+  }
 
   function handleRefresh() {
     startRefresh(() => {
@@ -157,6 +172,8 @@ export function UsersTable({
 
   return (
     <>
+      <LoadingOverlay show={isApplying || isKicking} />
+
       {/* 헤더 */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -349,19 +366,12 @@ export function UsersTable({
                   {isMaster && (
                     <td className="px-4 py-3">
                       {user.role !== "master" && (
-                        <form action={kickUser}>
-                          <input
-                            type="hidden"
-                            name="user_id"
-                            value={user.id}
-                          />
-                          <button
-                            type="submit"
-                            className="rounded-lg bg-red-50 px-3 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-100 dark:bg-red-950 dark:text-red-400 dark:hover:bg-red-900"
-                          >
-                            탈퇴
-                          </button>
-                        </form>
+                        <button
+                          onClick={() => handleKick(user.id, user.username)}
+                          className="rounded-lg bg-red-50 px-3 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-100 dark:bg-red-950 dark:text-red-400 dark:hover:bg-red-900"
+                        >
+                          탈퇴
+                        </button>
                       )}
                     </td>
                   )}

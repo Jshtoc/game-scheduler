@@ -11,7 +11,7 @@ const navItems = [
   { href: "/profile", label: "프로필", emoji: "👤" },
 ];
 
-export function MobileNav() {
+export function MobileNav({ isAdmin }: { isAdmin?: boolean }) {
   const pathname = usePathname();
 
   function isActive(href: string, exact?: boolean) {
@@ -19,10 +19,14 @@ export function MobileNav() {
     return pathname === href || pathname.startsWith(href + "/");
   }
 
+  const items = isAdmin
+    ? [...navItems, { href: "/admin", label: "관리", emoji: "⚙️" }]
+    : navItems;
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-white/10 bg-dark-card md:hidden">
-      {navItems.map((item) => {
-        const active = isActive(item.href, item.exact);
+      {items.map((item) => {
+        const active = isActive(item.href, "exact" in item ? item.exact : undefined);
         return (
           <Link
             key={item.href}

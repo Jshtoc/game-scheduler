@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import TwEmoji from "@/components/ui/TwEmoji";
 
 const navItems = [
+  { href: "/dashboard", label: "사용자", emoji: "🏠" },
   { href: "/admin", label: "대시보드", emoji: "📊", exact: true },
   { href: "/admin/users", label: "회원", emoji: "👤" },
   { href: "/admin/schedules", label: "스케줄", emoji: "📅" },

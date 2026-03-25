@@ -21,6 +21,14 @@ export function AdminSidebarNav() {
 
   return (
     <nav className="flex flex-col gap-1 p-3">
+      <Link
+        href="/dashboard"
+        className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-white/60 transition-colors hover:bg-white/10 hover:text-accent"
+      >
+        <TwEmoji emoji="🏠" size={18} />
+        사용자 페이지
+      </Link>
+      <div className="my-1 border-t border-white/10" />
       {navItems.map((item) => {
         const active = isActive(item.href, item.exact);
         return (

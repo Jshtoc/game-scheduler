@@ -10,7 +10,7 @@ const navItems = [
   { href: "/schedules/board", label: "스케줄 보드", emoji: "📋" },
 ];
 
-export function SidebarNav() {
+export function SidebarNav({ isAdmin }: { isAdmin?: boolean }) {
   const pathname = usePathname();
 
   function isActive(href: string, exact?: boolean) {
@@ -37,6 +37,18 @@ export function SidebarNav() {
           </Link>
         );
       })}
+      {isAdmin && (
+        <>
+          <div className="my-2 border-t border-white/10" />
+          <Link
+            href="/admin"
+            className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-white/60 transition-colors hover:bg-white/10 hover:text-accent"
+          >
+            <TwEmoji emoji="⚙️" size={18} />
+            관리자 페이지
+          </Link>
+        </>
+      )}
     </nav>
   );
 }

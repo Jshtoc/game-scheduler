@@ -34,7 +34,7 @@ export default async function UserLayout({
           <span className="text-sm font-bold text-white">Game Scheduler</span>
         </Link>
 
-        <SidebarNav />
+        <SidebarNav isAdmin={profile?.role === "master" || profile?.role === "admin"} />
 
         <div className="mt-auto border-t border-white/10 p-3">
           <Link
@@ -82,7 +82,7 @@ export default async function UserLayout({
       </main>
 
       {/* 모바일 하단 탭 */}
-      <MobileNav />
+      <MobileNav isAdmin={profile?.role === "master" || profile?.role === "admin"} />
     </div>
   );
 }

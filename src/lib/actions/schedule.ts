@@ -33,10 +33,9 @@ export async function createSchedule(formData: FormData) {
     recurringTime = formData.get("recurring_time") as string;
     const daysRaw = formData.get("recurring_days") as string;
     recurringDays = JSON.parse(daysRaw || "[]") as number[];
-    startTime = `${startDate}T${recurringTime}+09:00`;
+    startTime = `${startDate}T${recurringTime}`;
   } else {
-    const rawTime = formData.get("start_time") as string;
-    startTime = `${rawTime}+09:00`;
+    startTime = formData.get("start_time") as string;
   }
 
   const { data, error } = await supabase
@@ -116,10 +115,9 @@ export async function updateSchedule(formData: FormData) {
     recurringTime = formData.get("recurring_time") as string;
     const daysRaw = formData.get("recurring_days") as string;
     recurringDays = JSON.parse(daysRaw || "[]") as number[];
-    startTime = `${startDate}T${recurringTime}+09:00`;
+    startTime = `${startDate}T${recurringTime}`;
   } else {
-    const rawTime = formData.get("start_time") as string;
-    startTime = `${rawTime}+09:00`;
+    startTime = formData.get("start_time") as string;
   }
 
   const { error } = await supabase

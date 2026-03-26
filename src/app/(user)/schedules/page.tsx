@@ -90,9 +90,11 @@ export default async function SchedulesPage() {
         </Link>
       </div>
 
-      {/* 진행 중 스케줄 */}
-      {activeSchedules.length > 0 ? (
-        <ScheduleGrid schedules={activeSchedules} />
+      {activeSchedules.length > 0 || pastSchedules.length > 0 ? (
+        <ScheduleGrid
+          activeSchedules={activeSchedules}
+          pastSchedules={pastSchedules}
+        />
       ) : (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-card-border py-16">
           <TwEmoji emoji="📭" size={40} />
@@ -103,16 +105,6 @@ export default async function SchedulesPage() {
           >
             스케줄 보드 보기
           </Link>
-        </div>
-      )}
-
-      {/* 종료된 스케줄 */}
-      {pastSchedules.length > 0 && (
-        <div className="flex flex-col gap-4">
-          <h2 className="text-sm font-semibold text-muted">
-            종료된 스케줄 ({pastSchedules.length})
-          </h2>
-          <ScheduleGrid schedules={pastSchedules} />
         </div>
       )}
     </div>

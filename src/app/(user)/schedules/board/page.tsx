@@ -80,23 +80,15 @@ export default async function ScheduleBoardPage() {
         </Link>
       </div>
 
-      {/* 진행 중 스케줄 */}
-      {activeSchedules.length > 0 ? (
-        <ScheduleGrid schedules={activeSchedules} />
+      {activeSchedules.length > 0 || pastSchedules.length > 0 ? (
+        <ScheduleGrid
+          activeSchedules={activeSchedules}
+          pastSchedules={pastSchedules}
+        />
       ) : (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-card-border py-16">
           <TwEmoji emoji="📭" size={40} />
           <p className="text-muted">등록된 스케줄이 없습니다</p>
-        </div>
-      )}
-
-      {/* 종료된 스케줄 */}
-      {pastSchedules.length > 0 && (
-        <div className="flex flex-col gap-4">
-          <h2 className="text-sm font-semibold text-muted">
-            종료된 스케줄 ({pastSchedules.length})
-          </h2>
-          <ScheduleGrid schedules={pastSchedules} />
         </div>
       )}
     </div>

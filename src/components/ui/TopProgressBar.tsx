@@ -1,57 +1,67 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
 export function TopProgressBar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [visible, setVisible] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useEffect(() => {
-    setLoading(false);
+  function stopProgress() {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
     setProgress(100);
-    const timer = setTimeout(() => setProgress(0), 300);
-    return () => clearTimeout(timer);
+    setTimeout(() => {
+      setVisible(false);
+      setProgress(0);
+    }, 200);
+  }
+
+  // 페이지 변경 감지 → 완료
+  useEffect(() => {
+    stopProgress();
   }, [pathname, searchParams]);
 
+  // 링크 클릭 감지 → 시작
   useEffect(() => {
-    let interval: ReturnType<typeof setInterval>;
-
     const handleClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      const anchor = target.closest("a");
+      const anchor = (e.target as HTMLElement).closest("a");
       if (!anchor) return;
 
       const href = anchor.getAttribute("href");
-      if (!href || href.startsWith("#") || href.startsWith("http")) return;
+      if (!href || href.startsWith("#") || href.startsWith("http") || href === pathname) return;
 
-      setLoading(true);
-      setProgress(20);
+      setVisible(true);
+      setProgress(15);
 
-      interval = setInterval(() => {
-        setProgress((p) => {
-          if (p >= 90) return 90;
-          return p + Math.random() * 15;
-        });
-      }, 300);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = setInterval(() => {
+        setProgress((p) => (p >= 90 ? 90 : p + Math.random() * 10));
+      }, 400);
     };
 
     document.addEventListener("click", handleClick);
     return () => {
       document.removeEventListener("click", handleClick);
-      clearInterval(interval);
+      if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, []);
+  }, [pathname]);
 
-  if (!loading && progress === 0) return null;
+  if (!visible) return null;
 
   return (
     <div className="fixed left-0 right-0 top-0 z-[200] h-0.5">
       <div
-        className="h-full bg-accent transition-all duration-300 ease-out"
-        style={{ width: `${progress}%` }}
+        className="h-full bg-accent transition-all ease-out"
+        style={{
+          width: `${progress}%`,
+          transitionDuration: progress === 100 ? "150ms" : "400ms",
+        }}
       />
     </div>
   );

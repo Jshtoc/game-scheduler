@@ -2,6 +2,7 @@ import TwEmoji from "@/components/ui/TwEmoji";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ScheduleCard } from "@/components/ui/ScheduleCard";
+import { ScheduleGrid } from "@/components/ui/ScheduleGrid";
 import { SuccessModal } from "@/components/ui/SuccessModal";
 import type { ScheduleCardData } from "@/components/ui/ScheduleCard";
 
@@ -91,11 +92,7 @@ export default async function SchedulesPage() {
 
       {/* 진행 중 스케줄 */}
       {activeSchedules.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {activeSchedules.map((schedule) => (
-            <ScheduleCard key={schedule.id} schedule={schedule} />
-          ))}
-        </div>
+        <ScheduleGrid schedules={activeSchedules} />
       ) : (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-card-border py-16">
           <TwEmoji emoji="📭" size={40} />
@@ -115,11 +112,7 @@ export default async function SchedulesPage() {
           <h2 className="text-sm font-semibold text-muted">
             종료된 스케줄 ({pastSchedules.length})
           </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {pastSchedules.map((schedule) => (
-              <ScheduleCard key={schedule.id} schedule={schedule} />
-            ))}
-          </div>
+          <ScheduleGrid schedules={pastSchedules} />
         </div>
       )}
     </div>

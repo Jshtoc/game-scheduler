@@ -96,11 +96,7 @@ export default async function ScheduleBoardPage() {
           <h2 className="text-sm font-semibold text-muted">
             종료된 스케줄 ({pastSchedules.length})
           </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {pastSchedules.map((schedule) => (
-              <ScheduleCard key={schedule.id} schedule={schedule} />
-            ))}
-          </div>
+          <ScheduleGrid schedules={pastSchedules} />
         </div>
       )}
     </div>

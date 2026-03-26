@@ -2,6 +2,7 @@ import TwEmoji from "@/components/ui/TwEmoji";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { ScheduleGrid } from "@/components/ui/ScheduleGrid";
 import { ScheduleCard } from "@/components/ui/ScheduleCard";
 import type { ScheduleCardData } from "@/components/ui/ScheduleCard";
 
@@ -23,7 +24,7 @@ export default async function ScheduleBoardPage() {
   const { data: schedules } = await supabase
     .from("schedules")
     .select(
-      "id, title, game_name, game_image, start_time, max_players, schedule_type, is_ended, profiles!schedules_owner_id_fkey(username, avatar_url), schedule_participants(user_id, status, profiles(username, avatar_url))"
+      "id, title, game_name, game_image, start_time, max_players, schedule_type, is_ended, recurring_days, recurring_time, profiles!schedules_owner_id_fkey(username, avatar_url), schedule_participants(user_id, status, profiles(username, avatar_url))"
     )
     .order("start_time", { ascending: true });
 
@@ -43,6 +44,8 @@ export default async function ScheduleBoardPage() {
       max_players: s.max_players,
       schedule_type: s.schedule_type,
       is_ended: s.is_ended ?? false,
+      recurring_days: (s.recurring_days as number[] | null) ?? null,
+      recurring_time: (s.recurring_time as string | null) ?? null,
       owner: s.profiles as unknown as ScheduleCardData["owner"],
       participants: (
         s.schedule_participants as unknown as {
@@ -79,11 +82,7 @@ export default async function ScheduleBoardPage() {
 
       {/* 진행 중 스케줄 */}
       {activeSchedules.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {activeSchedules.map((schedule) => (
-            <ScheduleCard key={schedule.id} schedule={schedule} />
-          ))}
-        </div>
+        <ScheduleGrid schedules={activeSchedules} />
       ) : (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-card-border py-16">
           <TwEmoji emoji="📭" size={40} />

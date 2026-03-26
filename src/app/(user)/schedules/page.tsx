@@ -26,7 +26,7 @@ export default async function SchedulesPage() {
     const { data } = await supabase
       .from("schedules")
       .select(
-        "id, title, game_name, game_image, start_time, max_players, schedule_type, is_ended, profiles!schedules_owner_id_fkey(username, avatar_url), schedule_participants(user_id, status, profiles(username, avatar_url))"
+        "id, title, game_name, game_image, start_time, max_players, schedule_type, is_ended, recurring_days, recurring_time, profiles!schedules_owner_id_fkey(username, avatar_url), schedule_participants(user_id, status, profiles(username, avatar_url))"
       )
       .in("id", scheduleIds)
       .order("start_time", { ascending: true });
@@ -44,6 +44,8 @@ export default async function SchedulesPage() {
         max_players: s.max_players,
         schedule_type: s.schedule_type,
         is_ended: s.is_ended ?? false,
+        recurring_days: (s.recurring_days as number[] | null) ?? null,
+        recurring_time: (s.recurring_time as string | null) ?? null,
         owner: s.profiles as unknown as ScheduleCardData["owner"],
         participants: (
           s.schedule_participants as unknown as {

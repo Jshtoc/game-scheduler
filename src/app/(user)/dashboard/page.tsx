@@ -14,7 +14,7 @@ export default async function DashboardPage() {
     supabase.from("profiles").select("username").eq("id", user?.id ?? "").single(),
     supabase
       .from("schedule_participants")
-      .select("schedule_id, schedules(id, title, game_name, game_image, start_time, schedule_type, recurring_days)")
+      .select("schedule_id, schedules(id, title, game_name, game_image, start_time, schedule_type, recurring_days, recurring_time)")
       .eq("user_id", user?.id ?? "")
       .eq("status", "accepted"),
   ]);
@@ -31,16 +31,46 @@ export default async function DashboardPage() {
       start_time: string;
       schedule_type: string;
       recurring_days: number[] | null;
+      recurring_time: string | null;
     };
     return s;
   }).filter(Boolean);
 
   const scheduleCount = allSchedules.length;
 
-  const now = new Date();
+  // 정기게임의 다음 플레이 날짜 계산
+  function getNextPlayDate(s: (typeof allSchedules)[number]): Date | null {
+    const now = new Date();
+
+    if (s.schedule_type === "once") {
+      const d = new Date(s.start_time);
+      return d >= now ? d : null;
+    }
+
+    // 정기게임
+    if (!s.recurring_days || s.recurring_days.length === 0) return null;
+
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const [h, m] = (s.recurring_time ?? "00:00").split(":").map(Number);
+
+    // 오늘부터 7일 내에 가장 가까운 정기 요일 찾기
+    for (let offset = 0; offset < 7; offset++) {
+      const candidate = new Date(today);
+      candidate.setDate(candidate.getDate() + offset);
+      candidate.setHours(h, m, 0, 0);
+
+      if (s.recurring_days.includes(candidate.getDay()) && candidate > now) {
+        return candidate;
+      }
+    }
+
+    return null;
+  }
+
   const upcomingSchedules = allSchedules
-    .filter((s) => new Date(s.start_time) >= now || s.schedule_type === "recurring")
-    .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())
+    .map((s) => ({ ...s, nextPlay: getNextPlayDate(s) }))
+    .filter((s) => s.nextPlay !== null)
+    .sort((a, b) => a.nextPlay!.getTime() - b.nextPlay!.getTime())
     .slice(0, 5);
 
   const nextSchedule = upcomingSchedules[0];
@@ -82,7 +112,7 @@ export default async function DashboardPage() {
                     {nextSchedule.title}
                   </Link>
                   <p className="text-sm text-muted">
-                    {new Date(nextSchedule.start_time).toLocaleDateString("ko-KR", {
+                    {nextSchedule.nextPlay!.toLocaleDateString("ko-KR", {
                       month: "short",
                       day: "numeric",
                       weekday: "short",

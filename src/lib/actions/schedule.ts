@@ -91,18 +91,15 @@ export async function updateSchedule(formData: FormData) {
     .single();
 
   const isOwner = schedule?.owner_id === user.id;
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  const isSiteAdmin = profile?.role === "master" || profile?.role === "admin";
 
-  if (!isOwner) {
-    const { data: myRole } = await supabase
-      .from("schedule_participants")
-      .select("role")
-      .eq("schedule_id", id)
-      .eq("user_id", user.id)
-      .single();
-
-    if (myRole?.role !== "admin") {
-      redirect(`/schedules/${id}`);
-    }
+  if (!isOwner && !isSiteAdmin) {
+    redirect(`/schedules/${id}`);
   }
 
   const scheduleType = (formData.get("schedule_type") as string) || "once";
